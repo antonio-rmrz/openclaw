@@ -452,7 +452,7 @@ OPENCLAW_GATEWAY_BIND=loopback
     // Generate files
     const token = this.generateToken();
     fs.writeFileSync(
-      path.join(instanceDir, "docker compose.yml"),
+      path.join(instanceDir, "docker-compose.yml"),
       this.generateDockerCompose(instance),
     );
 
