@@ -2,6 +2,15 @@ const KEY = "openclaw.control.settings.v1";
 
 import type { ThemeMode } from "./theme.ts";
 
+declare global {
+  interface Window {
+    __OPENCLAW_CONTROL_UI_BASE_PATH__?: string;
+    __OPENCLAW_ASSISTANT_NAME__?: string;
+    __OPENCLAW_ASSISTANT_AVATAR__?: string;
+    __OPENCLAW_GATEWAY_TOKEN__?: string;
+  }
+}
+
 export type UiSettings = {
   gatewayUrl: string;
   token: string;
@@ -36,16 +45,35 @@ export function loadSettings(): UiSettings {
 
   try {
     const raw = localStorage.getItem(KEY);
+
+    // Check for server-injected token
+    const injectedToken = window.__OPENCLAW_GATEWAY_TOKEN__;
+
     if (!raw) {
+      // No stored settings - use injected token if available
+      if (injectedToken && typeof injectedToken === "string") {
+        return { ...defaults, token: injectedToken };
+      }
       return defaults;
     }
+
     const parsed = JSON.parse(raw) as Partial<UiSettings>;
+
+    // Injected token takes precedence over localStorage
+    // This ensures token is always current for Docker instances
+    const resolvedToken =
+      injectedToken && typeof injectedToken === "string"
+        ? injectedToken
+        : typeof parsed.token === "string"
+          ? parsed.token
+          : defaults.token;
+
     return {
       gatewayUrl:
         typeof parsed.gatewayUrl === "string" && parsed.gatewayUrl.trim()
           ? parsed.gatewayUrl.trim()
           : defaults.gatewayUrl,
-      token: typeof parsed.token === "string" ? parsed.token : defaults.token,
+      token: resolvedToken,
       sessionKey:
         typeof parsed.sessionKey === "string" && parsed.sessionKey.trim()
           ? parsed.sessionKey.trim()
@@ -79,6 +107,11 @@ export function loadSettings(): UiSettings {
           : defaults.navGroupsCollapsed,
     };
   } catch {
+    // On parse error, check for injected token
+    const injectedToken = window.__OPENCLAW_GATEWAY_TOKEN__;
+    if (injectedToken && typeof injectedToken === "string") {
+      return { ...defaults, token: injectedToken };
+    }
     return defaults;
   }
 }
