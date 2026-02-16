@@ -2,7 +2,7 @@
  * Interactive TUI for managing instances
  */
 
-import { cancel, confirm, intro, isCancel, outro, select, spinner, text } from "@clack/prompts";
+import { confirm, intro, isCancel, outro, select, spinner, text } from "@clack/prompts";
 import chalk from "chalk";
 import { execSync } from "node:child_process";
 import type { InstanceWithStatus } from "./instance-types.js";

@@ -184,10 +184,9 @@ OPENCLAW_GATEWAY_BIND=lan
 
   private isContainerRunning(containerName: string): boolean {
     try {
-      const result = execSync(
-        `docker ps --format '{{.Names}}' 2>/dev/null | grep -q "^${containerName}$"`,
-        { stdio: "pipe" },
-      );
+      execSync(`docker ps --format '{{.Names}}' 2>/dev/null | grep -q "^${containerName}$"`, {
+        stdio: "pipe",
+      });
       return true;
     } catch {
       return false;
