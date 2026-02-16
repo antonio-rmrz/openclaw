@@ -191,8 +191,8 @@ services:
       - ./config:/home/node/.openclaw
       - ./workspace:/home/node/.openclaw/workspace
     ports:
-      - "\${GATEWAY_PORT}:18789"
-      - "\${BRIDGE_PORT}:18790"
+      - "127.0.0.1:\${GATEWAY_PORT}:18789"
+      - "127.0.0.1:\${BRIDGE_PORT}:18790"
     init: true
     restart: unless-stopped
     command:
@@ -201,9 +201,10 @@ services:
         "dist/index.js",
         "gateway",
         "--bind",
-        "\${OPENCLAW_GATEWAY_BIND:-loopback}",
+        "lan",
         "--port",
         "18789",
+        "--allow-unconfigured",
       ]
 
   cli:
