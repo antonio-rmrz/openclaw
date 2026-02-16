@@ -603,26 +603,38 @@ function resolveModalFieldValues(
   try {
     switch (field.type) {
       case "text": {
-        const value = fields.getText(field.id, field.required);
+        const value = field.required ? fields.getText(field.id, true) : fields.getText(field.id);
         return value ? [value] : [];
       }
       case "select":
       case "checkbox":
       case "radio": {
-        const values = fields.getStringSelect(field.id, field.required) ?? [];
+        const values =
+          (field.required
+            ? fields.getStringSelect(field.id, true)
+            : fields.getStringSelect(field.id)) ?? [];
         return mapOptionLabels(optionLabels, values);
       }
       case "role-select": {
         try {
-          const roles = fields.getRoleSelect(field.id, field.required) ?? [];
+          const roles =
+            (field.required
+              ? fields.getRoleSelect(field.id, true)
+              : fields.getRoleSelect(field.id)) ?? [];
           return roles.map((role) => role.name ?? role.id);
         } catch {
-          const values = fields.getStringSelect(field.id, field.required) ?? [];
+          const values =
+            (field.required
+              ? fields.getStringSelect(field.id, true)
+              : fields.getStringSelect(field.id)) ?? [];
           return values;
         }
       }
       case "user-select": {
-        const users = fields.getUserSelect(field.id, field.required) ?? [];
+        const users =
+          (field.required
+            ? fields.getUserSelect(field.id, true)
+            : fields.getUserSelect(field.id)) ?? [];
         return users.map((user) => formatDiscordUserTag(user));
       }
       default:
@@ -683,7 +695,7 @@ async function dispatchDiscordComponentEvent(params: {
   const fromLabel = interactionCtx.isDirectMessage
     ? buildDirectLabel(interactionCtx.user)
     : buildGuildLabel({
-        guild: interaction.guild ?? undefined,
+        guild: (interaction.guild ?? undefined) as any,
         channelName: channelCtx.channelName ?? interactionCtx.channelId,
         channelId: interactionCtx.channelId,
       });
@@ -849,7 +861,10 @@ async function handleDiscordComponentEvent(params: {
   values?: string[];
   label: string;
 }): Promise<void> {
-  const parsed = parseDiscordComponentData(params.data, params.interaction.customId);
+  const parsed = parseDiscordComponentData(
+    params.data,
+    (params.interaction.rawData as any).data?.custom_id,
+  );
   if (!parsed) {
     logError(`${params.label}: failed to parse component data`);
     try {
@@ -967,7 +982,10 @@ async function handleDiscordModalTrigger(params: {
   data: ComponentData;
   label: string;
 }): Promise<void> {
-  const parsed = parseDiscordComponentData(params.data, params.interaction.customId);
+  const parsed = parseDiscordComponentData(
+    params.data,
+    (params.interaction.rawData as any).data?.custom_id,
+  );
   if (!parsed) {
     logError(`${params.label}: failed to parse modal trigger data`);
     try {
@@ -1267,7 +1285,7 @@ class DiscordComponentButton extends Button {
   }
 
   async run(interaction: ButtonInteraction, data: ComponentData): Promise<void> {
-    const parsed = parseDiscordComponentData(data, interaction.customId);
+    const parsed = parseDiscordComponentData(data, (interaction.rawData as any).data?.custom_id);
     if (parsed?.modalId) {
       await handleDiscordModalTrigger({
         ctx: this.ctx,
@@ -1411,7 +1429,7 @@ class DiscordComponentModal extends Modal {
   }
 
   async run(interaction: ModalInteraction, data: ComponentData): Promise<void> {
-    const modalId = parseDiscordModalId(data, interaction.customId);
+    const modalId = parseDiscordModalId(data, (interaction.rawData as any).data?.custom_id);
     if (!modalId) {
       logError("discord component modal: missing modal id");
       try {
