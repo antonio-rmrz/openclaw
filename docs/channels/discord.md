@@ -97,6 +97,12 @@ Supported blocks:
 - Action rows allow up to 5 buttons or a single select menu
 - Select types: `string`, `user`, `role`, `mentionable`, `channel`
 
+File attachments:
+
+- `file` blocks must point to an attachment reference (`attachment://<filename>`)
+- Provide the attachment via `media`/`path`/`filePath` (single file); use `media-gallery` for multiple files
+- Use `filename` to override the upload name when it should match the attachment reference
+
 Modal forms:
 
 - Add `components.modal` with up to 5 fields
