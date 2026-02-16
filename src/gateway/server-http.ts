@@ -578,7 +578,7 @@ export function createGatewayHttpServer(opts: {
             basePath: controlUiBasePath,
             config: configSnapshot,
             root: controlUiRoot,
-            gatewayToken: runtimeConfig.resolvedAuth.token,
+            gatewayToken: resolvedAuth.token,
           })
         ) {
           return;
