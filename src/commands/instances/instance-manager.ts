@@ -456,6 +456,24 @@ OPENCLAW_GATEWAY_BIND=loopback
       this.generateDockerCompose(instance),
     );
 
+    // Write default openclaw.json config (bypass device pairing for Control UI on localhost)
+    // This allows seamless local development without requiring manual pairing approval
+    // Scopes are preserved from the UI's connect request (fixed in message-handler.ts)
+    fs.writeFileSync(
+      path.join(instanceDir, "config", "openclaw.json"),
+      JSON.stringify(
+        {
+          gateway: {
+            controlUi: {
+              dangerouslyDisableDeviceAuth: true,
+            },
+          },
+        },
+        null,
+        2,
+      ),
+    );
+
     // Write .env file with restricted permissions (owner only)
     const envPath = path.join(instanceDir, ".env");
     fs.writeFileSync(envPath, this.generateEnvFile(instance, token));
