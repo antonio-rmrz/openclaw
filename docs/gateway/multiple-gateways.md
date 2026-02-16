@@ -52,7 +52,7 @@ Run a second Gateway on the same host with its own:
 
 This keeps the rescue bot isolated from the main bot so it can debug or apply config changes if the primary bot is down.
 
-Port spacing: leave at least 20 ports between base ports so the derived browser/canvas/CDP ports never collide.
+Port spacing: leave at least 120 ports between base ports to avoid conflicts with derived browser/canvas/CDP ports (which require ~111 ports).
 
 ### How to install (rescue bot)
 

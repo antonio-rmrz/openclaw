@@ -127,7 +127,7 @@ openclaw instances destroy work       # Remove instance
 Each instance gets:
 
 - **Full Docker isolation** - separate container and network
-- **Auto-allocated ports** - 18800, 18810, 18820, ...
+- **Auto-allocated ports** - 18800, 18920, 19040, ... (120-port spacing to avoid conflicts)
 - **Independent config** - own API keys, channels, workspace (`~/.openclaw-multi/instances/<name>/`)
 
 See also: [Multiple Gateways](https://docs.openclaw.ai/gateway/multiple-gateways) for native `--profile` alternative without Docker.
