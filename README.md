@@ -104,6 +104,45 @@ pnpm gateway:watch
 
 Note: `pnpm openclaw ...` runs TypeScript directly (via `tsx`). `pnpm build` produces `dist/` for running via Node / the packaged `openclaw` binary.
 
+## For Developers
+
+If you're developing OpenClaw, use the local wrapper for convenience:
+
+```bash
+./oc instances list          # Instead of node dist/index.js instances list
+./oc i ls                    # Even shorter with aliases
+```
+
+**First-time setup**:
+
+```bash
+./oc setup dev               # Check environment and show shortcuts
+```
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for complete development guide including:
+
+- Local wrapper usage (`./oc`)
+- NPM convenience scripts (`pnpm i:ls`)
+- Shell aliases for power users
+- All available command shortcuts
+- Why NOT to use `node dist/index.js`
+
+**Quick commands**:
+
+```bash
+./oc i ls                    # List instances
+./oc i new dev              # Create instance
+./oc i start dev            # Start instance
+pnpm i:ls                   # Alternative via npm
+```
+
+**Update global install** after pulling changes:
+
+```bash
+git pull
+pnpm link --global           # Re-link to update global command
+```
+
 ## Multiple instances (Docker)
 
 Quickly spin up and tear down isolated OpenClaw instances using Docker:

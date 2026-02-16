@@ -8,7 +8,7 @@ import { runCommandWithRuntime } from "../cli-utils.js";
 import { hasExplicitOptions } from "../command-options.js";
 
 export function registerSetupCommand(program: Command) {
-  program
+  const setup = program
     .command("setup")
     .description("Initialize ~/.openclaw/openclaw.json and the agent workspace")
     .addHelpText(
@@ -49,5 +49,14 @@ export function registerSetupCommand(program: Command) {
         }
         await setupCommand({ workspace: opts.workspace as string | undefined }, defaultRuntime);
       });
+    });
+
+  // Add dev subcommand for development environment setup
+  setup
+    .command("dev")
+    .description("Set up local development environment and show shortcuts")
+    .action(async () => {
+      const mod = await import("../setup/dev-setup.js");
+      await mod.setupDevCommand();
     });
 }

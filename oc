@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# OpenClaw local development wrapper
+# Usage: ./oc instances list  OR  ./oc i ls
+exec "$(dirname "$0")/openclaw.mjs" "$@"
