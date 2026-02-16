@@ -104,6 +104,16 @@ export function registerInstancesCommand(program: Command) {
       await instancesCli.cli(name, args);
     });
 
+  // Run onboarding wizard
+  instances
+    .command("wizard <name>")
+    .description("Run onboarding wizard in instance container")
+    .option("--flow <type>", "Wizard flow: quickstart (default) | advanced")
+    .option("--reset", "Reset configuration before running wizard")
+    .action(async (name, options) => {
+      await instancesCli.wizard(name, options);
+    });
+
   // Build Docker image
   instances
     .command("build")

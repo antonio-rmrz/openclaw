@@ -118,6 +118,25 @@ pnpm i:logs dev              # Using npm script
 ./oc i open <name>           # Alias for dashboard
 ```
 
+### Run Onboarding Wizard
+
+After creating an instance, run the wizard to configure it:
+
+```bash
+./oc i wizard <name>                    # Default quickstart flow
+./oc i wizard <name> --flow quickstart  # Explicit quickstart
+./oc i wizard <name> --flow advanced    # Advanced options
+./oc i wizard <name> --reset            # Reset and reconfigure
+```
+
+The wizard will guide you through:
+- AI provider authentication (Anthropic API, OpenAI, etc.)
+- Agent workspace configuration
+- Channel setup (Discord, WhatsApp, Telegram)
+- Skill installations (optional)
+
+**Note**: The wizard is optional. Instances work with `--allow-unconfigured` but need provider credentials for AI functionality.
+
 ### Destroy Instance
 
 ```bash

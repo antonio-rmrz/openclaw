@@ -261,6 +261,46 @@ export const instancesCli = {
   },
 
   /**
+   * Run onboarding wizard in instance
+   */
+  async wizard(name: string, options: { flow?: string; reset?: boolean }): Promise<void> {
+    const instance = manager.getInstance(name);
+    if (!instance) {
+      console.error(chalk.red(`Error: Instance '${name}' not found`));
+      process.exit(1);
+    }
+
+    console.log(chalk.cyan(`\nStarting onboarding wizard for instance '${name}'...\n`));
+
+    const args = ["onboard"];
+
+    // Add flow option if specified
+    if (options.flow) {
+      args.push("--flow", options.flow);
+    }
+
+    // Add reset flag if specified
+    if (options.reset) {
+      args.push("--reset");
+    }
+
+    const proc = manager.runCli(name, args);
+
+    proc.on("close", (code) => {
+      if (code === 0) {
+        console.log(chalk.green(`\n✓ Wizard completed successfully for instance '${name}'`));
+        console.log(chalk.cyan(`\nNext steps:`));
+        console.log(chalk.white(`  - Dashboard: http://127.0.0.1:${instance.ports.gateway}/`));
+        console.log(chalk.white(`  - View logs: openclaw instances logs ${name}`));
+        console.log(chalk.white(`  - Restart: openclaw instances restart ${name}\n`));
+      } else if (code) {
+        console.error(chalk.yellow(`\nWizard exited with code ${code}`));
+      }
+      process.exit(code ?? 0);
+    });
+  },
+
+  /**
    * Open dashboard in browser
    */
   async dashboard(name: string): Promise<void> {
