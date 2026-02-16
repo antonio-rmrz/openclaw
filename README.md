@@ -104,6 +104,34 @@ pnpm gateway:watch
 
 Note: `pnpm openclaw ...` runs TypeScript directly (via `tsx`). `pnpm build` produces `dist/` for running via Node / the packaged `openclaw` binary.
 
+## Multiple instances (Docker)
+
+Quickly spin up and tear down isolated OpenClaw instances using Docker:
+
+```bash
+# Interactive TUI - manage all instances visually
+openclaw instances
+
+# Or use CLI commands
+openclaw instances create work        # Create + start instance
+openclaw instances create prod --port 19000
+openclaw instances list               # Show all instances with status
+openclaw instances start work         # Start an instance
+openclaw instances stop work          # Stop an instance
+openclaw instances logs work          # Follow logs
+openclaw instances config work        # Edit configuration
+openclaw instances dashboard work     # Open web UI in browser
+openclaw instances destroy work       # Remove instance
+```
+
+Each instance gets:
+
+- **Full Docker isolation** - separate container and network
+- **Auto-allocated ports** - 18800, 18810, 18820, ...
+- **Independent config** - own API keys, channels, workspace (`~/.openclaw-multi/instances/<name>/`)
+
+See also: [Multiple Gateways](https://docs.openclaw.ai/gateway/multiple-gateways) for native `--profile` alternative without Docker.
+
 ## Security defaults (DM access)
 
 OpenClaw connects to real messaging surfaces. Treat inbound DMs as **untrusted input**.

@@ -113,6 +113,16 @@ const coreEntries: CoreCliEntry[] = [
       mod.registerBrowserCli(program);
     },
   },
+  {
+    commands: [
+      { name: "instances", description: "Manage multiple OpenClaw Docker instances" },
+      { name: "i", description: "Manage multiple OpenClaw Docker instances" },
+    ],
+    register: async ({ program }) => {
+      const mod = await import("../../commands/instances/index.js");
+      mod.registerInstancesCommand(program);
+    },
+  },
 ];
 
 export function getCoreCliCommandNames(): string[] {
