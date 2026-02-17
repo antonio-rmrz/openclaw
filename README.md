@@ -153,19 +153,19 @@ Quickly spin up and tear down isolated OpenClaw instances using Docker:
 # Interactive TUI - manage all instances visually
 oc instances
 
-# Or use CLI commands
-oc instances create work        # Create + start instance
-oc instances create prod --port 19000
-oc instances list               # Show all instances with status
-oc instances start work         # Start an instance
-oc instances stop work          # Stop an instance
-oc instances logs work          # Follow logs
-oc instances config work        # Edit configuration
-oc instances dashboard work     # Open web UI in browser
-oc instances vnc work           # Open noVNC browser view (see Chromium live)
-oc instances terminal work      # Open ttyd web terminal (bash shell)
-oc instances wizard work        # Run onboarding wizard inside container
-oc instances destroy work       # Remove instance
+# Or use CLI commands  (<name> is your instance name, e.g. "work", "prod", "jarvis")
+oc instances create <name>               # Create + start instance
+oc instances create <name> --port 19000  # Custom base port
+oc instances list                        # Show all instances with status
+oc instances start <name>                # Start an instance
+oc instances stop <name>                 # Stop an instance
+oc instances logs <name>                 # Follow logs
+oc instances config <name>               # Edit configuration
+oc instances dashboard <name>            # Open web UI in browser
+oc instances vnc <name>                  # Open noVNC browser view (see Chromium live)
+oc instances terminal <name>             # Open ttyd web terminal (bash shell)
+oc instances wizard <name>               # Run onboarding wizard inside container
+oc instances destroy <name>              # Remove instance
 ```
 
 Each instance gets:
