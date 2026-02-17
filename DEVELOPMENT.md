@@ -130,12 +130,57 @@ After creating an instance, run the wizard to configure it:
 ```
 
 The wizard will guide you through:
+
 - AI provider authentication (Anthropic API, OpenAI, etc.)
 - Agent workspace configuration
 - Channel setup (Discord, WhatsApp, Telegram)
 - Skill installations (optional)
 
 **Note**: The wizard is optional. Instances work with `--allow-unconfigured` but need provider credentials for AI functionality.
+
+### View Browser (noVNC)
+
+Each instance runs a full Chromium browser sidecar accessible via noVNC in your web browser:
+
+```bash
+./oc i vnc <name>            # Opens noVNC browser view
+```
+
+URL format: `http://127.0.0.1:<vncPort>/vnc.html?autoconnect=1&resize=remote`
+
+| Instance         | noVNC URL                       |
+| ---------------- | ------------------------------- |
+| go-experiences   | http://127.0.0.1:18802/vnc.html |
+| my-living-legacy | http://127.0.0.1:18922/vnc.html |
+| pharmagrow       | http://127.0.0.1:19042/vnc.html |
+
+### Open Web Terminal (ttyd)
+
+Each instance also runs a ttyd web terminal for direct shell access:
+
+```bash
+./oc i terminal <name>       # Opens web terminal
+./oc i term <name>           # Alias for terminal
+```
+
+URL format: `http://127.0.0.1:<terminalPort>/`
+
+| Instance         | Terminal URL            |
+| ---------------- | ----------------------- |
+| go-experiences   | http://127.0.0.1:18803/ |
+| my-living-legacy | http://127.0.0.1:18923/ |
+| pharmagrow       | http://127.0.0.1:19043/ |
+
+### Port Layout
+
+Each instance uses 4 consecutive ports within a 120-port block:
+
+| Offset | Service       | Description             |
+| ------ | ------------- | ----------------------- |
+| base+0 | Gateway       | OpenClaw web UI + API   |
+| base+1 | Bridge        | WebSocket bridge        |
+| base+2 | noVNC         | Browser view (Chromium) |
+| base+3 | ttyd terminal | Web terminal (bash)     |
 
 ### Destroy Instance
 
@@ -168,6 +213,7 @@ pnpm i:tui                   # Using npm script
 - `config` → `edit`
 - `dashboard` → `open`
 - `cli` → `run`
+- `terminal` → `term`
 
 ## Shell Alias (Optional Power-User Setup)
 
@@ -447,13 +493,16 @@ oc i ls                      # Fastest possible
 
 ## Quick Reference Card
 
-| Goal             | Command                 | Length   |
-| ---------------- | ----------------------- | -------- |
-| List instances   | `./oc i ls`             | 9 chars  |
-| Create instance  | `./oc i new dev`        | 15 chars |
-| Start instance   | `./oc i start dev`      | 17 chars |
-| View logs        | `./oc i logs dev`       | 16 chars |
-| Destroy instance | `./oc i rm dev --force` | 22 chars |
+| Goal              | Command                 | Length   |
+| ----------------- | ----------------------- | -------- |
+| List instances    | `./oc i ls`             | 9 chars  |
+| Create instance   | `./oc i new dev`        | 15 chars |
+| Start instance    | `./oc i start dev`      | 17 chars |
+| View logs         | `./oc i logs dev`       | 16 chars |
+| Open dashboard    | `./oc i open dev`       | 16 chars |
+| Open browser view | `./oc i vnc dev`        | 15 chars |
+| Open terminal     | `./oc i term dev`       | 16 chars |
+| Destroy instance  | `./oc i rm dev --force` | 22 chars |
 
 Compare to old way: `node dist/index.js instances list` = **31 chars**
 
