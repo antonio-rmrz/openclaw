@@ -18,6 +18,11 @@ mkdir -p "${HOME}" "${HOME}/.chrome" "${XDG_CONFIG_HOME}" "${XDG_CACHE_HOME}"
 # Pre-creating it here (sandbox user can write to /tmp) avoids the failure.
 mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix
 
+# Remove stale Xvfb lock/socket files left over from a previous container crash.
+# Docker does not wipe /tmp between restarts, so without this Xvfb fatally exits
+# with "Server is already active for display 1" on every restart after the first crash.
+rm -f /tmp/.X1-lock /tmp/.X11-unix/X1
+
 Xvfb :1 -screen 0 1280x800x24 -ac -nolisten tcp &
 
 if [[ "${HEADLESS}" == "1" ]]; then
