@@ -111,7 +111,12 @@ export class InstanceManager {
    * Reuses offsets from destroyed instances when possible
    * Checks port availability before allocation
    */
-  private async allocatePort(): Promise<{ gatewayPort: number; bridgePort: number }> {
+  private async allocatePort(): Promise<{
+    gatewayPort: number;
+    bridgePort: number;
+    vncPort: number;
+    terminalPort: number;
+  }> {
     const registry = this.readRegistry();
     const maxAttempts = 1000;
 
@@ -128,21 +133,28 @@ export class InstanceManager {
 
       const gatewayPort = INSTANCES_BASE_PORT + offset * INSTANCES_PORT_STEP;
       const bridgePort = gatewayPort + 1;
+      const vncPort = gatewayPort + 2;
+      const terminalPort = gatewayPort + 3;
 
       // Validate port range
-      if (gatewayPort > 65535 || bridgePort > 65535) {
+      if (gatewayPort > 65535 || terminalPort > 65535) {
         throw new Error(
-          `Port allocation exceeded valid range (gateway: ${gatewayPort}, bridge: ${bridgePort})`,
+          `Port allocation exceeded valid range (gateway: ${gatewayPort}, terminal: ${terminalPort})`,
         );
       }
 
       // Check if ports are available
-      const gatewayAvailable = await this.isPortAvailable(gatewayPort);
-      const bridgeAvailable = await this.isPortAvailable(bridgePort);
+      const [gatewayAvailable, bridgeAvailable, vncAvailable, terminalAvailable] =
+        await Promise.all([
+          this.isPortAvailable(gatewayPort),
+          this.isPortAvailable(bridgePort),
+          this.isPortAvailable(vncPort),
+          this.isPortAvailable(terminalPort),
+        ]);
 
-      if (gatewayAvailable && bridgeAvailable) {
+      if (gatewayAvailable && bridgeAvailable && vncAvailable && terminalAvailable) {
         this.writeRegistry(registry);
-        return { gatewayPort, bridgePort };
+        return { gatewayPort, bridgePort, vncPort, terminalPort };
       }
 
       // Ports not available, add offset back for future reuse and try next
@@ -224,6 +236,29 @@ services:
     tty: true
     init: true
     entrypoint: ["node", "dist/index.js"]
+
+  browser:
+    image: \${OPENCLAW_BROWSER_IMAGE:-openclaw-sandbox-browser:local}
+    container_name: openclaw-\${INSTANCE_NAME}-browser
+    environment:
+      OPENCLAW_BROWSER_HEADLESS: "0"
+      OPENCLAW_BROWSER_ENABLE_NOVNC: "1"
+      OPENCLAW_BROWSER_CDP_PORT: "9222"
+      OPENCLAW_BROWSER_VNC_PORT: "5900"
+      OPENCLAW_BROWSER_NOVNC_PORT: "6080"
+    ports:
+      - "127.0.0.1:\${VNC_PORT}:6080"
+    restart: unless-stopped
+    init: true
+    shm_size: '256m'
+
+  terminal:
+    image: \${OPENCLAW_TTYD_IMAGE:-openclaw-ttyd:local}
+    container_name: openclaw-\${INSTANCE_NAME}-terminal
+    ports:
+      - "127.0.0.1:\${TERMINAL_PORT}:7681"
+    restart: unless-stopped
+    init: true
 `;
   }
 
@@ -234,7 +269,11 @@ services:
 INSTANCE_NAME=${instance.name}
 GATEWAY_PORT=${instance.gatewayPort}
 BRIDGE_PORT=${instance.bridgePort}
+VNC_PORT=${instance.vncPort}
+TERMINAL_PORT=${instance.terminalPort}
 OPENCLAW_IMAGE=openclaw:local
+OPENCLAW_BROWSER_IMAGE=openclaw-sandbox-browser:local
+OPENCLAW_TTYD_IMAGE=openclaw-ttyd:local
 OPENCLAW_GATEWAY_TOKEN=${token}
 # Security: Default to loopback (localhost only)
 # Change to 'lan' to expose to local network
@@ -294,12 +333,13 @@ OPENCLAW_GATEWAY_BIND=loopback
     return { available: true };
   }
 
-  /**
-   * Build the OpenClaw Docker image
-   */
-  async buildImage(onOutput?: (data: string) => void): Promise<void> {
+  private buildDockerImage(
+    tag: string,
+    dockerfile: string,
+    onOutput?: (data: string) => void,
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
-      const proc = spawn("docker", ["build", "-t", "openclaw:local", "-f", "Dockerfile", "."], {
+      const proc = spawn("docker", ["build", "-t", tag, "-f", dockerfile, "."], {
         cwd: this.repoDir,
         stdio: ["ignore", "pipe", "pipe"],
       });
@@ -311,12 +351,25 @@ OPENCLAW_GATEWAY_BIND=loopback
         if (code === 0) {
           resolve();
         } else {
-          reject(new Error(`Docker build failed with code ${code}`));
+          reject(new Error(`Docker build failed for ${tag} with code ${code}`));
         }
       });
 
       proc.on("error", reject);
     });
+  }
+
+  /**
+   * Build all OpenClaw Docker images (gateway, sandbox browser, web terminal)
+   */
+  async buildImage(onOutput?: (data: string) => void): Promise<void> {
+    await this.buildDockerImage("openclaw:local", "Dockerfile", onOutput);
+    await this.buildDockerImage(
+      "openclaw-sandbox-browser:local",
+      "Dockerfile.sandbox-browser",
+      onOutput,
+    );
+    await this.buildDockerImage("openclaw-ttyd:local", "Dockerfile.ttyd", onOutput);
   }
 
   /**
@@ -418,21 +471,33 @@ OPENCLAW_GATEWAY_BIND=loopback
     // Allocate ports
     let gatewayPort: number;
     let bridgePort: number;
+    let vncPort: number;
+    let terminalPort: number;
     if (port) {
       // Validate custom port
-      if (port < 1024 || port > 65534) {
-        throw new Error("Port must be between 1024 and 65534");
+      if (port < 1024 || port > 65532) {
+        throw new Error("Port must be between 1024 and 65532");
       }
-      // Check custom port availability
-      if (!(await this.isPortAvailable(port)) || !(await this.isPortAvailable(port + 1))) {
-        throw new Error(`Port ${port} or ${port + 1} is already in use`);
+      // Check custom port availability (gateway, bridge, vnc, terminal)
+      const [gOk, bOk, vOk, tOk] = await Promise.all([
+        this.isPortAvailable(port),
+        this.isPortAvailable(port + 1),
+        this.isPortAvailable(port + 2),
+        this.isPortAvailable(port + 3),
+      ]);
+      if (!gOk || !bOk || !vOk || !tOk) {
+        throw new Error(`One or more ports ${port}-${port + 3} are already in use`);
       }
       gatewayPort = port;
       bridgePort = port + 1;
+      vncPort = port + 2;
+      terminalPort = port + 3;
     } else {
       const ports = await this.allocatePort();
       gatewayPort = ports.gatewayPort;
       bridgePort = ports.bridgePort;
+      vncPort = ports.vncPort;
+      terminalPort = ports.terminalPort;
     }
 
     // Create instance data
@@ -441,6 +506,8 @@ OPENCLAW_GATEWAY_BIND=loopback
       name,
       gatewayPort,
       bridgePort,
+      vncPort,
+      terminalPort,
       configDir: instanceDir,
       createdAt: new Date().toISOString(),
     };
@@ -506,7 +573,7 @@ OPENCLAW_GATEWAY_BIND=loopback
     }
 
     const instanceDir = this.getInstanceDir(name);
-    execSync("docker compose up -d gateway", {
+    execSync("docker compose up -d gateway browser terminal", {
       cwd: instanceDir,
       stdio: "inherit",
       env: { ...process.env, COMPOSE_PROJECT_NAME: `ocm-${name}` },
@@ -637,6 +704,28 @@ OPENCLAW_GATEWAY_BIND=loopback
       throw new Error(`Instance '${name}' not found`);
     }
     return `http://127.0.0.1:${instance.gatewayPort}/`;
+  }
+
+  /**
+   * Get noVNC browser view URL
+   */
+  getVncUrl(name: string): string {
+    const instance = this.getInstance(name);
+    if (!instance) {
+      throw new Error(`Instance '${name}' not found`);
+    }
+    return `http://127.0.0.1:${instance.vncPort}/vnc.html?autoconnect=1&resize=remote`;
+  }
+
+  /**
+   * Get ttyd web terminal URL
+   */
+  getTerminalUrl(name: string): string {
+    const instance = this.getInstance(name);
+    if (!instance) {
+      throw new Error(`Instance '${name}' not found`);
+    }
+    return `http://127.0.0.1:${instance.terminalPort}/`;
   }
 }
 

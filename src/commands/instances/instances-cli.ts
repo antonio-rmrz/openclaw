@@ -324,13 +324,61 @@ export const instancesCli = {
   },
 
   /**
+   * Open noVNC browser view for an instance
+   */
+  async vnc(name: string): Promise<void> {
+    const instance = manager.getInstance(name);
+    if (!instance) {
+      console.error(chalk.red(`Error: Instance '${name}' not found`));
+      process.exit(1);
+    }
+
+    const url = manager.getVncUrl(name);
+    console.log(chalk.cyan(`Opening noVNC browser view: ${url}`));
+
+    const openCommand =
+      process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
+    try {
+      execSync(`${openCommand} "${url}"`, { stdio: "ignore" });
+    } catch {
+      console.log(chalk.gray(`Could not open browser. Visit: ${url}`));
+    }
+  },
+
+  /**
+   * Open ttyd web terminal for an instance
+   */
+  async terminal(name: string): Promise<void> {
+    const instance = manager.getInstance(name);
+    if (!instance) {
+      console.error(chalk.red(`Error: Instance '${name}' not found`));
+      process.exit(1);
+    }
+
+    const url = manager.getTerminalUrl(name);
+    console.log(chalk.cyan(`Opening web terminal: ${url}`));
+
+    const openCommand =
+      process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
+    try {
+      execSync(`${openCommand} "${url}"`, { stdio: "ignore" });
+    } catch {
+      console.log(chalk.gray(`Could not open browser. Visit: ${url}`));
+    }
+  },
+
+  /**
    * Build Docker image
    */
   async build(): Promise<void> {
     console.log(chalk.cyan("Building OpenClaw Docker image..."));
     try {
       await manager.buildImage((data) => process.stdout.write(data));
-      console.log(chalk.green("Image built successfully: openclaw:local"));
+      console.log(
+        chalk.green(
+          "Images built successfully: openclaw:local, openclaw-sandbox-browser:local, openclaw-ttyd:local",
+        ),
+      );
     } catch (error) {
       console.error(chalk.red(`Error: ${error instanceof Error ? error.message : String(error)}`));
       process.exit(1);

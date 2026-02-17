@@ -6,6 +6,8 @@ export interface Instance {
   name: string;
   gatewayPort: number;
   bridgePort: number;
+  vncPort: number;
+  terminalPort: number;
   configDir: string;
   createdAt: string;
 }
@@ -35,9 +37,10 @@ export const INSTANCES_BASE_PORT = 18800;
 // Port spacing accounts for:
 // - Gateway port (base)
 // - Bridge port (base + 1)
-// - Browser control port (base + 2)
-// - Chrome CDP ports (base + 2 + 9 to base + 2 + 108) = 100 ports
-// Total needed: 111 ports + buffer = 120
+// - noVNC browser view (base + 2)
+// - ttyd web terminal (base + 3)
+// - Chrome CDP ports (base + 4 to base + 103) = 100 ports
+// Total needed: 104 ports + buffer = 120
 export const INSTANCES_PORT_STEP = 120;
 export const INSTANCES_DIR_NAME = ".openclaw-multi";
 export const REGISTRY_FILE_NAME = "registry.json";

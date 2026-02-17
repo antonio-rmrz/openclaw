@@ -114,6 +114,23 @@ export function registerInstancesCommand(program: Command) {
       await instancesCli.wizard(name, options);
     });
 
+  // Open noVNC browser view
+  instances
+    .command("vnc <name>")
+    .description("Open noVNC browser view for an instance")
+    .action(async (name) => {
+      await instancesCli.vnc(name);
+    });
+
+  // Open web terminal
+  instances
+    .command("terminal <name>")
+    .alias("term")
+    .description("Open web terminal for an instance")
+    .action(async (name) => {
+      await instancesCli.terminal(name);
+    });
+
   // Build Docker image
   instances
     .command("build")
