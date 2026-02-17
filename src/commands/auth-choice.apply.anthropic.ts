@@ -84,8 +84,20 @@ export async function applyAuthChoiceAnthropic(
     }
     if (!hasCredential) {
       const key = await params.prompter.text({
-        message: "Enter Anthropic API key",
-        validate: validateApiKeyInput,
+        message: "Enter Anthropic API key (paste FULL key - OAuth tokens are ~108 chars)",
+        validate: (value) => {
+          const validation = validateApiKeyInput(value);
+          if (validation !== true) {
+            return validation;
+          }
+
+          const keyStr = String(value ?? "").trim();
+          // Warn if OAuth token appears truncated (should be ~108 chars)
+          if (keyStr.startsWith("sk-ant-oat") && keyStr.length < 100) {
+            return "⚠️  OAuth token appears incomplete (too short). Paste the FULL token.";
+          }
+          return true;
+        },
       });
       await setAnthropicApiKey(normalizeApiKeyInput(String(key ?? "")), params.agentDir);
     }

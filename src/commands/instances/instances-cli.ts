@@ -290,7 +290,7 @@ export const instancesCli = {
       if (code === 0) {
         console.log(chalk.green(`\n✓ Wizard completed successfully for instance '${name}'`));
         console.log(chalk.cyan(`\nNext steps:`));
-        console.log(chalk.white(`  - Dashboard: http://127.0.0.1:${instance.ports.gateway}/`));
+        console.log(chalk.white(`  - Dashboard: http://127.0.0.1:${instance.gatewayPort}/`));
         console.log(chalk.white(`  - View logs: openclaw instances logs ${name}`));
         console.log(chalk.white(`  - Restart: openclaw instances restart ${name}\n`));
       } else if (code) {

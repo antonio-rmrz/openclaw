@@ -71,6 +71,7 @@ export class GatewayBrowserClient {
   private connectSent = false;
   private connectTimer: number | null = null;
   private backoffMs = 800;
+  private skipCachedDeviceToken = false; // Skip cached token after mismatch
 
   constructor(private opts: GatewayBrowserClientOptions) {}
 
@@ -101,6 +102,18 @@ export class GatewayBrowserClient {
       const reason = String(ev.reason ?? "");
       this.ws = null;
       this.flushPending(new Error(`gateway closed (${ev.code}): ${reason}`));
+
+      // Detect token mismatch and clear stale device tokens
+      if (ev.code === 1008 && !this.skipCachedDeviceToken) {
+        const isTokenMismatch =
+          reason.toLowerCase().includes("token") || reason.toLowerCase().includes("unauthorized");
+        if (isTokenMismatch) {
+          // Clear stale device token and retry with injected token
+          this.skipCachedDeviceToken = true;
+          this.backoffMs = 100; // Retry quickly
+        }
+      }
+
       this.opts.onClose?.({ code: ev.code, reason });
       this.scheduleReconnect();
     });
@@ -148,10 +161,18 @@ export class GatewayBrowserClient {
 
     if (isSecureContext) {
       deviceIdentity = await loadOrCreateDeviceIdentity();
-      const storedToken = loadDeviceAuthToken({
-        deviceId: deviceIdentity.deviceId,
-        role,
-      })?.token;
+
+      // Clear stale device token if we detected a mismatch
+      if (this.skipCachedDeviceToken) {
+        clearDeviceAuthToken({ deviceId: deviceIdentity.deviceId, role });
+      }
+
+      const storedToken = this.skipCachedDeviceToken
+        ? null
+        : loadDeviceAuthToken({
+            deviceId: deviceIdentity.deviceId,
+            role,
+          })?.token;
       authToken = storedToken ?? this.opts.token;
       canFallbackToShared = Boolean(storedToken && this.opts.token);
     }
@@ -225,6 +246,7 @@ export class GatewayBrowserClient {
           });
         }
         this.backoffMs = 800;
+        this.skipCachedDeviceToken = false; // Reset flag on successful connect
         this.opts.onHello?.(hello);
       })
       .catch(() => {
