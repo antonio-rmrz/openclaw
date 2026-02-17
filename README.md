@@ -160,6 +160,9 @@ openclaw instances stop work          # Stop an instance
 openclaw instances logs work          # Follow logs
 openclaw instances config work        # Edit configuration
 openclaw instances dashboard work     # Open web UI in browser
+openclaw instances vnc work           # Open noVNC browser view (see Chromium live)
+openclaw instances terminal work      # Open ttyd web terminal (bash shell)
+openclaw instances wizard work        # Run onboarding wizard inside container
 openclaw instances destroy work       # Remove instance
 ```
 
@@ -168,6 +171,8 @@ Each instance gets:
 - **Full Docker isolation** - separate container and network
 - **Auto-allocated ports** - 18800, 18920, 19040, ... (120-port spacing to avoid conflicts)
 - **Independent config** - own API keys, channels, workspace (`~/.openclaw-multi/instances/<name>/`)
+- **noVNC browser view** - watch and interact with the Chromium browser running inside Docker (`base+2` port)
+- **ttyd web terminal** - browser-based bash shell for direct container access (`base+3` port)
 
 See also: [Multiple Gateways](https://docs.openclaw.ai/gateway/multiple-gateways) for native `--profile` alternative without Docker.
 
