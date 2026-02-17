@@ -14,6 +14,10 @@ HEADLESS="${OPENCLAW_BROWSER_HEADLESS:-${CLAWDBOT_BROWSER_HEADLESS:-0}}"
 
 mkdir -p "${HOME}" "${HOME}/.chrome" "${XDG_CONFIG_HOME}" "${XDG_CACHE_HOME}"
 
+# Xvfb refuses to create /tmp/.X11-unix when running as non-root (euid != 0).
+# Pre-creating it here (sandbox user can write to /tmp) avoids the failure.
+mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix
+
 Xvfb :1 -screen 0 1280x800x24 -ac -nolisten tcp &
 
 if [[ "${HEADLESS}" == "1" ]]; then
