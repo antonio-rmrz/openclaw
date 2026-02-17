@@ -53,6 +53,8 @@ npm install -g openclaw@latest
 openclaw onboard --install-daemon
 ```
 
+Both `openclaw` and `oc` (short alias) are installed. Use whichever you prefer.
+
 The wizard installs the Gateway daemon (launchd/systemd user service) so it stays running.
 
 ## Quick start (TL;DR)
@@ -149,21 +151,21 @@ Quickly spin up and tear down isolated OpenClaw instances using Docker:
 
 ```bash
 # Interactive TUI - manage all instances visually
-openclaw instances
+oc instances
 
 # Or use CLI commands
-openclaw instances create work        # Create + start instance
-openclaw instances create prod --port 19000
-openclaw instances list               # Show all instances with status
-openclaw instances start work         # Start an instance
-openclaw instances stop work          # Stop an instance
-openclaw instances logs work          # Follow logs
-openclaw instances config work        # Edit configuration
-openclaw instances dashboard work     # Open web UI in browser
-openclaw instances vnc work           # Open noVNC browser view (see Chromium live)
-openclaw instances terminal work      # Open ttyd web terminal (bash shell)
-openclaw instances wizard work        # Run onboarding wizard inside container
-openclaw instances destroy work       # Remove instance
+oc instances create work        # Create + start instance
+oc instances create prod --port 19000
+oc instances list               # Show all instances with status
+oc instances start work         # Start an instance
+oc instances stop work          # Stop an instance
+oc instances logs work          # Follow logs
+oc instances config work        # Edit configuration
+oc instances dashboard work     # Open web UI in browser
+oc instances vnc work           # Open noVNC browser view (see Chromium live)
+oc instances terminal work      # Open ttyd web terminal (bash shell)
+oc instances wizard work        # Run onboarding wizard inside container
+oc instances destroy work       # Remove instance
 ```
 
 Each instance gets:
@@ -185,10 +187,10 @@ Full security guide: [Security](https://docs.openclaw.ai/gateway/security)
 Default behavior on Telegram/WhatsApp/Signal/iMessage/Microsoft Teams/Discord/Google Chat/Slack:
 
 - **DM pairing** (`dmPolicy="pairing"` / `channels.discord.dmPolicy="pairing"` / `channels.slack.dmPolicy="pairing"`; legacy: `channels.discord.dm.policy`, `channels.slack.dm.policy`): unknown senders receive a short pairing code and the bot does not process their message.
-- Approve with: `openclaw pairing approve <channel> <code>` (then the sender is added to a local allowlist store).
+- Approve with: `oc pairing approve <channel> <code>` (then the sender is added to a local allowlist store).
 - Public inbound DMs require an explicit opt-in: set `dmPolicy="open"` and include `"*"` in the channel allowlist (`allowFrom` / `channels.discord.allowFrom` / `channels.slack.allowFrom`; legacy: `channels.discord.dm.allowFrom`, `channels.slack.dm.allowFrom`).
 
-Run `openclaw doctor` to surface risky/misconfigured DM policies.
+Run `oc doctor` to surface risky/misconfigured DM policies.
 
 ## Highlights
 
