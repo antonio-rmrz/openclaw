@@ -191,6 +191,7 @@ export class InstanceManager {
 services:
   gateway:
     image: \${OPENCLAW_IMAGE:-openclaw:local}
+    user: root
     container_name: openclaw-\${INSTANCE_NAME}-gateway
     environment:
       HOME: /home/node
