@@ -195,6 +195,7 @@ services:
     environment:
       HOME: /home/node
       TERM: xterm-256color
+      PATH: /app:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       OPENCLAW_GATEWAY_TOKEN: \${OPENCLAW_GATEWAY_TOKEN}
       CLAUDE_AI_SESSION_KEY: \${CLAUDE_AI_SESSION_KEY:-}
       CLAUDE_WEB_SESSION_KEY: \${CLAUDE_WEB_SESSION_KEY:-}

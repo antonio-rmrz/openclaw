@@ -31,6 +31,10 @@ RUN pnpm ui:build
 
 ENV NODE_ENV=production
 
+# Add /app to PATH so the `oc` / `openclaw` CLI is reachable from subprocesses
+# (e.g. the agent's exec tool) without needing an absolute path.
+ENV PATH="/app:${PATH}"
+
 # Allow non-root user to write temp files during runtime/tests.
 RUN chown -R node:node /app
 
