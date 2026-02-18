@@ -209,12 +209,7 @@ services:
       - "127.0.0.1:\${BRIDGE_PORT}:18790"
     init: true
     restart: unless-stopped
-    command:
-      [
-        "sh",
-        "-c",
-        "rm -rf /tmp/openclaw-*/gateway.*.lock && exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured",
-      ]
+    command: ["gateway-entrypoint"]
 
   cli:
     image: \${OPENCLAW_IMAGE:-openclaw:local}
@@ -531,6 +526,13 @@ OPENCLAW_GATEWAY_BIND=loopback
             controlUi: {
               dangerouslyDisableDeviceAuth: true,
             },
+          },
+          browser: {
+            enabled: true,
+            executablePath: "/usr/local/bin/chromium-display",
+            headless: false,
+            noSandbox: true,
+            defaultProfile: "openclaw",
           },
         },
         null,
