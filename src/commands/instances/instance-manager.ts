@@ -191,7 +191,6 @@ export class InstanceManager {
 services:
   gateway:
     image: \${OPENCLAW_IMAGE:-openclaw:local}
-    user: root
     container_name: openclaw-\${INSTANCE_NAME}-gateway
     environment:
       HOME: /home/node
@@ -211,14 +210,9 @@ services:
     restart: unless-stopped
     command:
       [
-        "node",
-        "dist/index.js",
-        "gateway",
-        "--bind",
-        "lan",
-        "--port",
-        "18789",
-        "--allow-unconfigured",
+        "sh",
+        "-c",
+        "rm -rf /tmp/openclaw-*/gateway.*.lock && exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured",
       ]
 
   cli:
