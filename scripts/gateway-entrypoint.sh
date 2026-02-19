@@ -16,6 +16,21 @@ x11vnc -display :99 -rfbport 5900 -shared -forever -nopw -localhost \
 # websockify: proxy VNC → noVNC websocket on port 6080
 websockify --web /usr/share/novnc/ 6080 localhost:5900 &
 
+# --- Instance info (written fresh on every start so URLs are always correct) ---
+if [[ -n "${INSTANCE_NAME:-}" && -n "${GATEWAY_PORT:-}" ]]; then
+  mkdir -p /home/node/.openclaw/workspace
+  cat > /home/node/.openclaw/workspace/CLAUDE.md << EOF
+# Instance: ${INSTANCE_NAME}
+
+## Your External URLs (accessible from the host machine)
+- **Dashboard**: http://127.0.0.1:${GATEWAY_PORT}
+- **Live browser view (noVNC)**: http://127.0.0.1:${VNC_PORT}/vnc.html?autoconnect=1
+- **Terminal**: http://127.0.0.1:${TERMINAL_PORT}
+
+When the user asks for the noVNC or browser view link, give them the Live browser view URL above.
+EOF
+fi
+
 # --- Gateway ---
 rm -rf /tmp/openclaw-*/gateway.*.lock
 exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured

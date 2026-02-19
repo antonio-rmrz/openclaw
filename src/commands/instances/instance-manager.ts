@@ -201,6 +201,10 @@ services:
       CLAUDE_AI_SESSION_KEY: \${CLAUDE_AI_SESSION_KEY:-}
       CLAUDE_WEB_SESSION_KEY: \${CLAUDE_WEB_SESSION_KEY:-}
       CLAUDE_WEB_COOKIE: \${CLAUDE_WEB_COOKIE:-}
+      INSTANCE_NAME: \${INSTANCE_NAME}
+      GATEWAY_PORT: \${GATEWAY_PORT}
+      VNC_PORT: \${VNC_PORT}
+      TERMINAL_PORT: \${TERMINAL_PORT}
     volumes:
       - ./config:/home/node/.openclaw
       - ./workspace:/home/node/.openclaw/workspace
