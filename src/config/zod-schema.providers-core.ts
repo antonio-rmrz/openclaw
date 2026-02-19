@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { isSafeScpRemoteHost } from "../infra/scp-host.js";
+import { isValidInboundPathRootPattern } from "../media/inbound-path-policy.js";
 import {
   normalizeTelegramCommandDescription,
   normalizeTelegramCommandName,
@@ -460,6 +462,7 @@ export const GoogleChatAccountSchema = z
     chunkMode: z.enum(["length", "newline"]).optional(),
     blockStreaming: z.boolean().optional(),
     blockStreamingCoalesce: BlockStreamingCoalesceSchema.optional(),
+    streamMode: z.enum(["replace", "status_final", "append"]).optional().default("replace"),
     mediaMaxMb: z.number().positive().optional(),
     replyToMode: ReplyToModeSchema.optional(),
     actions: z
@@ -545,6 +548,7 @@ export const SlackAccountSchema = z
     chunkMode: z.enum(["length", "newline"]).optional(),
     blockStreaming: z.boolean().optional(),
     blockStreamingCoalesce: BlockStreamingCoalesceSchema.optional(),
+    streaming: z.boolean().optional(),
     mediaMaxMb: z.number().positive().optional(),
     reactionNotifications: z.enum(["off", "own", "all", "allowlist"]).optional(),
     reactionAllowlist: z.array(z.union([z.string(), z.number()])).optional(),
@@ -802,7 +806,10 @@ export const IMessageAccountSchemaBase = z
     configWrites: z.boolean().optional(),
     cliPath: ExecutableTokenSchema.optional(),
     dbPath: z.string().optional(),
-    remoteHost: z.string().optional(),
+    remoteHost: z
+      .string()
+      .refine(isSafeScpRemoteHost, "expected SSH host or user@host (no spaces/options)")
+      .optional(),
     service: z.union([z.literal("imessage"), z.literal("sms"), z.literal("auto")]).optional(),
     region: z.string().optional(),
     dmPolicy: DmPolicySchema.optional().default("pairing"),
@@ -813,6 +820,12 @@ export const IMessageAccountSchemaBase = z
     dmHistoryLimit: z.number().int().min(0).optional(),
     dms: z.record(z.string(), DmConfigSchema.optional()).optional(),
     includeAttachments: z.boolean().optional(),
+    attachmentRoots: z
+      .array(z.string().refine(isValidInboundPathRootPattern, "expected absolute path root"))
+      .optional(),
+    remoteAttachmentRoots: z
+      .array(z.string().refine(isValidInboundPathRootPattern, "expected absolute path root"))
+      .optional(),
     mediaMaxMb: z.number().int().positive().optional(),
     textChunkLimit: z.number().int().positive().optional(),
     chunkMode: z.enum(["length", "newline"]).optional(),
