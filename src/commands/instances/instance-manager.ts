@@ -202,6 +202,7 @@ services:
       CLAUDE_WEB_SESSION_KEY: \${CLAUDE_WEB_SESSION_KEY:-}
       CLAUDE_WEB_COOKIE: \${CLAUDE_WEB_COOKIE:-}
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./config:/home/node/.openclaw
       - ./workspace:/home/node/.openclaw/workspace
     ports:
@@ -527,12 +528,23 @@ OPENCLAW_GATEWAY_BIND=loopback
               dangerouslyDisableDeviceAuth: true,
             },
           },
-          browser: {
-            enabled: true,
-            executablePath: "/usr/local/bin/chromium-display",
-            headless: false,
-            noSandbox: true,
-            defaultProfile: "openclaw",
+          tools: {
+            exec: {
+              host: "gateway",
+            },
+          },
+          agents: {
+            defaults: {
+              sandbox: {
+                mode: "all",
+                browser: {
+                  enabled: true,
+                  image: "openclaw-sandbox-browser:local",
+                  headless: false,
+                  enableNoVnc: true,
+                },
+              },
+            },
           },
         },
         null,
