@@ -17,7 +17,8 @@ x11vnc -display :99 -rfbport 5900 -shared -forever -nopw -localhost \
 websockify --web /usr/share/novnc/ 6080 localhost:5900 &
 
 # Virtual audio device (PulseAudio) — needed for browser audio APIs and ffmpeg capture
-pulseaudio --start --exit-idle-time=-1 --daemonize=true 2>/dev/null || true
+# --system is required when running as root; HOME=/root for config storage
+HOME=/root pulseaudio --system --exit-idle-time=-1 --daemonize=true 2>/dev/null || true
 
 # --- Instance info (written fresh on every start so URLs are always correct) ---
 if [[ -n "${INSTANCE_NAME:-}" && -n "${GATEWAY_PORT:-}" ]]; then
