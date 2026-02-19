@@ -16,19 +16,17 @@ RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
       rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*; \
     fi
 
-# Install Docker CLI so the gateway can manage sandbox browser containers
+# Install Chromium, Xvfb, and noVNC stack for in-container browser support.
+# Chromium runs on a virtual display (Xvfb :99); x11vnc exposes it;
+# websockify proxies it to noVNC so users can watch the browser live.
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      ca-certificates curl gnupg && \
-    install -m 0755 -d /etc/apt/keyrings && \
-    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
-    chmod a+r /etc/apt/keyrings/docker.gpg && \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" \
-      > /etc/apt/sources.list.d/docker.list && \
-    apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends docker-ce-cli && \
+      chromium xvfb x11vnc websockify novnc && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* && \
+    printf '#!/bin/bash\nexport DISPLAY=:99\nexec chromium "$@"\n' \
+      > /usr/local/bin/chromium-display && \
+    chmod +x /usr/local/bin/chromium-display
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY ui/package.json ./ui/package.json
