@@ -34,7 +34,7 @@ RUN apt-get update && \
       libreoffice && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* && \
-    printf '#!/bin/bash\nexport DISPLAY=:99\nexec chromium "$@"\n' \
+    printf '#!/bin/bash\nexport DISPLAY=:99\nexec chromium --load-extension=/opt/openclaw-stealth --disable-extensions-except=/opt/openclaw-stealth "$@"\n' \
       > /usr/local/bin/chromium-display && \
     chmod +x /usr/local/bin/chromium-display
 
@@ -59,6 +59,8 @@ RUN if [ -n "$OPENCLAW_INSTALL_BROWSER" ]; then \
     fi
 
 COPY . .
+# Install the stealth Chrome extension at the path chromium-display expects
+COPY scripts/stealth-ext /opt/openclaw-stealth
 RUN pnpm build
 # Force pnpm for UI build (Bun may fail on ARM/Synology architectures)
 ENV OPENCLAW_PREFER_PNPM=1

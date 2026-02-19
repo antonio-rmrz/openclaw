@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "OpenClaw Stealth",
+  "version": "1.0",
+  "description": "Anti-fingerprinting patches — runs before any page JS to hide automation indicators",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["stealth.js"],
+      "run_at": "document_start",
+      "all_frames": true,
+      "world": "MAIN"
+    }
+  ]
+}
