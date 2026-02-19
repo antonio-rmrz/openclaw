@@ -16,13 +16,22 @@ RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
       rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*; \
     fi
 
-# Install Chromium, Xvfb, and noVNC stack for in-container browser support.
+# Install Chromium, Xvfb, noVNC stack, and agent tooling.
 # Chromium runs on a virtual display (Xvfb :99); x11vnc exposes it;
 # websockify proxies it to noVNC so users can watch the browser live.
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      chromium xvfb x11vnc websockify novnc xclip \
-      fonts-noto fonts-noto-color-emoji fonts-liberation && \
+      chromium xvfb x11vnc websockify novnc \
+      xclip xdotool scrot wmctrl \
+      fonts-noto fonts-noto-color-emoji fonts-liberation \
+      pulseaudio \
+      ffmpeg imagemagick \
+      poppler-utils tesseract-ocr \
+      python3-pip python3-venv \
+      jq \
+      zip unzip p7zip-full \
+      build-essential \
+      libreoffice && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* && \
     printf '#!/bin/bash\nexport DISPLAY=:99\nexec chromium "$@"\n' \
