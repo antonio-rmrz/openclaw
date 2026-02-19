@@ -213,6 +213,7 @@ services:
       - "127.0.0.1:\${GATEWAY_PORT}:18789"
       - "127.0.0.1:\${BRIDGE_PORT}:18790"
       - "127.0.0.1:\${VNC_PORT}:6080"
+    shm_size: "256m"
     init: true
     restart: unless-stopped
     command: ["gateway-entrypoint"]
