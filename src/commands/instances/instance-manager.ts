@@ -239,8 +239,6 @@ services:
       OPENCLAW_BROWSER_CDP_PORT: "9222"
       OPENCLAW_BROWSER_VNC_PORT: "5900"
       OPENCLAW_BROWSER_NOVNC_PORT: "6080"
-    ports:
-      - "127.0.0.1:\${VNC_PORT}:6080"
     restart: unless-stopped
     init: true
     shm_size: '256m'
