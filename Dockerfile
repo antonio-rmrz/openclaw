@@ -21,7 +21,7 @@ RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
 # websockify proxies it to noVNC so users can watch the browser live.
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      chromium xvfb x11vnc websockify novnc && \
+      chromium xvfb x11vnc websockify novnc xclip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* && \
     printf '#!/bin/bash\nexport DISPLAY=:99\nexec chromium "$@"\n' \
