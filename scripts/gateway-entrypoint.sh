@@ -31,7 +31,32 @@ if [[ -n "${INSTANCE_NAME:-}" && -n "${GATEWAY_PORT:-}" ]]; then
 - **Live browser view (noVNC)**: http://127.0.0.1:${VNC_PORT}/vnc.html?autoconnect=1
 - **Terminal**: http://127.0.0.1:${TERMINAL_PORT}
 
-When the user asks for the noVNC or browser view link, give them the Live browser view URL above.
+## Human-in-the-Loop Browser Protocol
+
+When you hit something in the browser that requires human interaction, **do not guess, skip, or brute-force it**. Use this protocol:
+
+1. **Stop** the current browser action immediately.
+2. **Send a Telegram message** to the user with this exact structure:
+   - What you were trying to do
+   - What is blocking you (CAPTCHA, 2FA, login wall, etc.)
+   - The live browser link: http://127.0.0.1:${VNC_PORT}/vnc.html?autoconnect=1
+   - Ask them to complete the action and reply when done
+3. **Wait** for the user's reply before resuming. Do not poll or retry.
+
+### Trigger this protocol when you encounter:
+- CAPTCHA or bot-detection challenges
+- Two-factor authentication (2FA / OTP codes / SMS verification)
+- Login walls where you don't have credentials
+- "Verify you're human" or image selection challenges
+- Any step where you've failed 2 times in a row
+- Anything that legally or ethically requires explicit human confirmation
+
+### Example message to send:
+> I need your help with the browser.
+> **What I was doing**: logging into X to post the update
+> **What's blocking me**: 2FA code required
+> **Open the live view**: http://127.0.0.1:${VNC_PORT}/vnc.html?autoconnect=1
+> Please enter the code and reply "done" when finished.
 EOF
 fi
 
