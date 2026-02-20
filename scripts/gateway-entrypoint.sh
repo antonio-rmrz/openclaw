@@ -21,14 +21,17 @@ websockify --web /usr/share/novnc/ 6080 localhost:5900 &
 HOME=/root pulseaudio --system --exit-idle-time=-1 --daemonize=true 2>/dev/null || true
 
 # --- Cloudflare Tunnel: public VNC URL accessible from any network ---
-# Runs cloudflared quick tunnel in background; writes the full ready-to-share
-# noVNC URL to .vnc-tunnel-url once the tunnel is established (~10-15s).
+# Restarts automatically if cloudflared crashes; always keeps .vnc-tunnel-url current.
 mkdir -p /home/node/.openclaw/workspace
 (
-  cloudflared tunnel --url http://localhost:6080 --no-autoupdate 2>&1 | \
-    grep -m1 -oE 'https://[a-z0-9-]+\.trycloudflare\.com' | \
-    sed 's|$|/vnc.html?autoconnect=1|' \
-    > /home/node/.openclaw/workspace/.vnc-tunnel-url
+  while true; do
+    rm -f /home/node/.openclaw/workspace/.vnc-tunnel-url
+    cloudflared tunnel --url http://localhost:6080 --no-autoupdate 2>&1 | \
+      grep -m1 -oE 'https://[a-z0-9-]+\.trycloudflare\.com' | \
+      sed 's|$|/vnc.html?autoconnect=1|' \
+      > /home/node/.openclaw/workspace/.vnc-tunnel-url
+    sleep 5  # brief pause before reconnect
+  done
 ) &
 
 # --- Instance info (written fresh on every start so URLs are always correct) ---
