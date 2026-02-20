@@ -38,6 +38,12 @@ RUN apt-get update && \
       > /usr/local/bin/chromium-display && \
     chmod +x /usr/local/bin/chromium-display
 
+# Install cloudflared for remote VNC tunnel access (any network, no account needed)
+RUN ARCH=$(dpkg --print-architecture) && \
+    wget -q -O /usr/local/bin/cloudflared \
+      "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${ARCH}" && \
+    chmod +x /usr/local/bin/cloudflared
+
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY ui/package.json ./ui/package.json
 COPY patches ./patches
