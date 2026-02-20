@@ -236,19 +236,6 @@ services:
     init: true
     entrypoint: ["node", "dist/index.js"]
 
-  browser:
-    image: \${OPENCLAW_BROWSER_IMAGE:-openclaw-sandbox-browser:local}
-    container_name: openclaw-\${INSTANCE_NAME}-browser
-    environment:
-      OPENCLAW_BROWSER_HEADLESS: "0"
-      OPENCLAW_BROWSER_ENABLE_NOVNC: "1"
-      OPENCLAW_BROWSER_CDP_PORT: "9222"
-      OPENCLAW_BROWSER_VNC_PORT: "5900"
-      OPENCLAW_BROWSER_NOVNC_PORT: "6080"
-    restart: unless-stopped
-    init: true
-    shm_size: '256m'
-
   terminal:
     image: \${OPENCLAW_TTYD_IMAGE:-openclaw-ttyd:local}
     container_name: openclaw-\${INSTANCE_NAME}-terminal
