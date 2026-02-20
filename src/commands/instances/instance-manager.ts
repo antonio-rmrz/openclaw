@@ -687,6 +687,44 @@ OPENCLAW_GATEWAY_BIND=loopback
   }
 
   /**
+   * Ensure the browser config block is present in the instance's openclaw.json.
+   * Called after wizard completion so a stale oc binary or mid-wizard overwrite
+   * can never leave an instance without browser automation capability.
+   */
+  ensureBrowserConfig(name: string): void {
+    const instance = this.getInstance(name);
+    if (!instance) {
+      return;
+    }
+    const configFile = path.join(this.getInstanceDir(name), "config", "openclaw.json");
+    if (!fs.existsSync(configFile)) {
+      return;
+    }
+    try {
+      const raw = fs.readFileSync(configFile, "utf8");
+      const cfg = JSON.parse(raw) as Record<string, unknown>;
+      const existing = cfg.browser as Record<string, unknown> | undefined;
+      const desired = {
+        enabled: true,
+        executablePath: "/usr/local/bin/chromium-display",
+        headless: false,
+        noSandbox: true,
+        defaultProfile: "openclaw",
+      };
+      const needsUpdate =
+        !existing ||
+        existing.executablePath !== desired.executablePath ||
+        existing.enabled !== desired.enabled;
+      if (needsUpdate) {
+        cfg.browser = { ...desired, ...existing, ...desired };
+        fs.writeFileSync(configFile, JSON.stringify(cfg, null, 2) + "\n");
+      }
+    } catch {
+      // Non-fatal: if the config is unreadable the gateway will report it
+    }
+  }
+
+  /**
    * Get dashboard URL
    */
   getDashboardUrl(name: string): string {

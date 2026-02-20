@@ -288,6 +288,8 @@ export const instancesCli = {
 
     proc.on("close", (code) => {
       if (code === 0) {
+        // Always ensure browser config is present regardless of wizard version or dist/ state
+        manager.ensureBrowserConfig(name);
         console.log(chalk.green(`\n✓ Wizard completed successfully for instance '${name}'`));
         console.log(chalk.cyan(`\nNext steps:`));
         console.log(chalk.white(`  - Dashboard: http://127.0.0.1:${instance.gatewayPort}/`));
