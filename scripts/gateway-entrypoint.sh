@@ -82,6 +82,50 @@ When you hit something in the browser that requires human interaction,
 > **What's blocking me**: 2FA code required
 > **Open the live view**: https://example-abc-def.trycloudflare.com/vnc.html?autoconnect=1
 > Please enter the code and reply "done" when finished.
+
+## Bypassing CDP Detection (Arkose / FunCaptcha / Cloudflare)
+
+Some sites (X/Twitter, Google, Cloudflare-protected pages) use Arkose Labs or similar
+vendors that specifically detect Chrome DevTools Protocol (CDP) attachment. When this
+happens the CAPTCHA **never renders** — you see an infinite spinner. This is not a
+solvable CAPTCHA; it is a deliberate block on the CDP debugger itself. The noVNC view
+will show the same spinner, so there is nothing the user can click there either.
+
+**Do not waste time retrying. Use the fresh-browser login pattern instead:**
+
+### Fresh-browser login pattern
+
+1. Launch a second Chromium inside this container with NO CDP attached and a clean profile:
+   \`\`\`bash
+   DISPLAY=:99 chromium --no-sandbox --disable-dev-shm-usage \\
+     --user-data-dir=/tmp/fresh-$(date +%s) \\
+     https://SITE_URL &
+   \`\`\`
+2. Get the public noVNC URL: \`cat ~/.openclaw/workspace/.vnc-tunnel-url\`
+3. Send a Telegram message to the user:
+   - Explain that CDP detection is blocking you
+   - Share the noVNC URL
+   - Ask them to log in manually in the fresh browser window that just opened
+   - Ask them to reply "done" when logged in
+4. Wait for "done".
+5. After login, extract the session cookies from the fresh profile and import them
+   into your main browser profile so you can continue the task via the browser tool.
+   To read the cookies SQLite file use Python:
+   \`\`\`python
+   import sqlite3, shutil, glob
+   profile = glob.glob('/tmp/fresh-*/Default/Cookies')[0]
+   shutil.copy(profile, '/tmp/cookies-export.db')
+   conn = sqlite3.connect('/tmp/cookies-export.db')
+   rows = conn.execute('SELECT host_key, name, value, path, is_secure, expires_utc FROM cookies').fetchall()
+   conn.close()
+   \`\`\`
+   Then use \`browser.evaluate\` or the browser tool's cookie/storage APIs to set
+   the cookies in the main profile before navigating to the authenticated area.
+
+### When to use this pattern:
+- CAPTCHA iframe loads but never renders a puzzle (infinite spinner)
+- Site explicitly blocks automation even after stealth measures
+- Any Arkose Labs / FunCaptcha / PerimeterX / DataDome challenge that doesn't appear
 EOF
 fi
 
