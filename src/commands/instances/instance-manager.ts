@@ -525,6 +525,8 @@ OPENCLAW_GATEWAY_BIND=loopback
             headless: false,
             noSandbox: true,
             defaultProfile: "openclaw",
+            remoteCdpTimeoutMs: 8000,
+            remoteCdpHandshakeTimeoutMs: 16000,
           },
         },
         null,
@@ -710,13 +712,29 @@ OPENCLAW_GATEWAY_BIND=loopback
         headless: false,
         noSandbox: true,
         defaultProfile: "openclaw",
+        remoteCdpTimeoutMs: 8000,
+        remoteCdpHandshakeTimeoutMs: 16000,
       };
       const needsUpdate =
         !existing ||
         existing.executablePath !== desired.executablePath ||
-        existing.enabled !== desired.enabled;
+        existing.enabled !== desired.enabled ||
+        !existing.remoteCdpTimeoutMs ||
+        !existing.remoteCdpHandshakeTimeoutMs;
       if (needsUpdate) {
-        cfg.browser = { ...desired, ...existing, ...desired };
+        cfg.browser = {
+          ...desired,
+          ...existing,
+          // Always force these critical fields
+          enabled: desired.enabled,
+          executablePath: desired.executablePath,
+          // Set timeouts only if not already configured by user
+          remoteCdpTimeoutMs:
+            (existing?.remoteCdpTimeoutMs as number | undefined) ?? desired.remoteCdpTimeoutMs,
+          remoteCdpHandshakeTimeoutMs:
+            (existing?.remoteCdpHandshakeTimeoutMs as number | undefined) ??
+            desired.remoteCdpHandshakeTimeoutMs,
+        };
         fs.writeFileSync(configFile, JSON.stringify(cfg, null, 2) + "\n");
       }
     } catch {
