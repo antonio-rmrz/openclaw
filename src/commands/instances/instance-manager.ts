@@ -698,13 +698,17 @@ OPENCLAW_GATEWAY_BIND=loopback
     if (!instance) {
       return;
     }
-    const configFile = path.join(this.getInstanceDir(name), "config", "openclaw.json");
+    const instanceDir = this.getInstanceDir(name);
+    const configFile = path.join(instanceDir, "config", "openclaw.json");
     if (!fs.existsSync(configFile)) {
       return;
     }
     try {
       const raw = fs.readFileSync(configFile, "utf8");
       const cfg = JSON.parse(raw) as Record<string, unknown>;
+      let dirty = false;
+
+      // --- Browser block ---
       const existing = cfg.browser as Record<string, unknown> | undefined;
       const desired = {
         enabled: true,
@@ -715,26 +719,48 @@ OPENCLAW_GATEWAY_BIND=loopback
         remoteCdpTimeoutMs: 8000,
         remoteCdpHandshakeTimeoutMs: 16000,
       };
-      const needsUpdate =
+      const browserNeedsUpdate =
         !existing ||
         existing.executablePath !== desired.executablePath ||
         existing.enabled !== desired.enabled ||
         !existing.remoteCdpTimeoutMs ||
         !existing.remoteCdpHandshakeTimeoutMs;
-      if (needsUpdate) {
+      if (browserNeedsUpdate) {
         cfg.browser = {
           ...desired,
           ...existing,
-          // Always force these critical fields
           enabled: desired.enabled,
           executablePath: desired.executablePath,
-          // Set timeouts only if not already configured by user
           remoteCdpTimeoutMs:
             (existing?.remoteCdpTimeoutMs as number | undefined) ?? desired.remoteCdpTimeoutMs,
           remoteCdpHandshakeTimeoutMs:
             (existing?.remoteCdpHandshakeTimeoutMs as number | undefined) ??
             desired.remoteCdpHandshakeTimeoutMs,
         };
+        dirty = true;
+      }
+
+      // --- Gateway token sync ---
+      // The wizard can write its own gateway.auth.token to the config, which may
+      // differ from OPENCLAW_GATEWAY_TOKEN in the .env file. When they differ the
+      // gateway uses the config token but agents authenticate with the env var token
+      // → "token mismatch" errors that only a restart can fix. Force them to match.
+      const envFile = path.join(instanceDir, ".env");
+      if (fs.existsSync(envFile)) {
+        const envContent = fs.readFileSync(envFile, "utf8");
+        const match = envContent.match(/^OPENCLAW_GATEWAY_TOKEN=(.+)$/m);
+        const envToken = match?.[1]?.trim();
+        if (envToken) {
+          const gateway = (cfg.gateway ?? {}) as Record<string, unknown>;
+          const gwAuth = (gateway.auth ?? {}) as Record<string, unknown>;
+          if (gwAuth.token !== envToken) {
+            cfg.gateway = { ...gateway, auth: { ...gwAuth, token: envToken } };
+            dirty = true;
+          }
+        }
+      }
+
+      if (dirty) {
         fs.writeFileSync(configFile, JSON.stringify(cfg, null, 2) + "\n");
       }
     } catch {
